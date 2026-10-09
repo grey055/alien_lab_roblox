@@ -1,68 +1,118 @@
-# Alien Lab v0.3
+# Alien Lab v0.4 — Cosmic Gardens
 
-A playful slime garden built with Rojo and beginner-friendly Luau. Your slimes
-make slime, you sell it for cash, and you hatch new species and upgrade your lab.
-The existing Rojo project mapping is preserved. All visuals use native Roblox
-parts and UI; no imported models, meshes, or image uploads are required.
+A colorful alien farming game built with Rojo and commented Luau. Buy seeds,
+plant your garden, harvest crops, and sell your basket for cash. Hatch alien
+helpers and equip their unique farming abilities. The original Rojo project
+mapping is preserved. Models use native Roblox parts and built-in sphere meshes;
+there are no external model or image assets to upload.
 
 ## What's new
 
-- Landscaped hub, trees, glowing path lights, garden gates, mushrooms, and a research reactor.
-- A personal fenced garden and visible slimes that hop, wobble, and roam inside it.
-- Seven slime species, each with a different color and accessories.
-- Three egg tiers with visible odds and server-checked lab requirements.
-- Five research upgrades that increase every slime's production.
-- Green cash and 3D slime stats in the top left, with production directly below slime.
-- Bottom action dock, scrollable egg shop, collection gallery, and research menu.
-- Animated egg opening, a 3D hatch reveal, and local confetti.
-- Server saves with autosaving, validated inventories, session ownership, and separate Studio data.
+- Personal fenced gardens with **12 planting beds** and visible crop growth.
+- A lavender floating island village, mushroom shops, crystals, lanterns,
+  distant islands, and a glowing planet in the central plaza.
+- Separate **seed, tool, and egg shops**, plus a harvest selling stall.
+- Seven cute alien helpers with distinct faces, accessories, and farming passives.
+- A compact top-left cash/basket/helper HUD and illustrated garden menus.
+- **Captain Nova's Comet Harvest** quest at the center of the village.
+- Saved seeds, crops, basket, tools, equipped helpers, and event progress.
 
-The farm, stations, slimes, and interface appear when **Play** starts. The edit
-scene still shows the original baseplate; you do not need to build the farm by hand.
+The village and interface are created when **Play** starts. The original
+template baseplate is hidden at runtime; the Edit scene remains the template.
 
-## How to play
+## Your first harvest
 
-1. Start with **$100**, **0 slime**, and a free **Slimelet**.
-2. Your slimes produce slime automatically. Press **SELL** to convert all whole slime into cash.
-3. Open **EGGS** and hatch a Starter Egg for **$50**.
-4. Open **UPGRADE** and buy Lab 1 for **$150**. Botanical eggs become available.
-5. Reach Lab 2 to unlock Cosmic eggs and work toward discovering Nebula!
-6. Open **SLIMES** to see your discovered collection. Duplicates still produce slime.
+1. Start with **$100**, **five Star Carrot seeds**, and a free **Gloop** helper.
+2. Open **FARM** and choose **Star Carrot**. Walk to an empty bed in your own
+   garden and press **E** to plant, or tap its prompt on mobile.
+3. Use the bed again to water it once and speed up growth. Gloop also provides
+   a 10% growth bonus while equipped.
+4. When the bed says **Ready to harvest**, use it to put the crop in your basket.
+5. Open the selling page or walk to the **SELL CROPS** stall and sell your basket.
+6. Buy more seeds, upgrade tools, and hatch eggs to discover new farming helpers.
 
-You can also walk to the egg stations, selling tank, or research reactor in
-your own farm and press **E**, or tap the prompt on a phone. Your character
-returns to the farm entrance on respawn. A garden holds up to **25 slimes**.
+The Farm menu has Plant, Water, and Harvest modes and buttons for each bed.
+Bed actions still require you to stand near that bed. A ripe crop is harvested
+when you use it; using a growing crop in Plant mode waters it automatically.
+Each bed consumes one seed and produces one harvest, represented by a small
+group of plants. Harvesting clears the bed so you can plant again.
 
-| Slime | Rarity | Base slime / second |
-| --- | --- | ---: |
-| Slimelet | Common | 1 |
-| Glowbug | Uncommon | 3 |
-| Starling | Rare | 6 |
-| Blossom | Rare | 8 |
-| Ember | Epic | 12 |
-| Frost | Epic | 18 |
-| Nebula | Legendary | 30 |
+Cash comes from selling crops and completing quests. Helpers do not generate
+cash or slime automatically. Crops grow while you are in the server; there is
+no offline growth.
+
+## Seeds and tools
+
+| Crop | Seed price | Base growth time | Base sell value |
+| --- | ---: | ---: | ---: |
+| Star Carrot | $10 | 20 seconds | $28 |
+| Moon Berry | $40 | 35 seconds | $100 |
+| Glow Shroom | $100 | 50 seconds | $260 |
+| Crystal Bloom | $250 | 75 seconds | $620 |
+| Comet Melon | $500 | 90 seconds | $1,350 |
+
+Growth bonuses and watering reduce the time you wait. Golden crops sell for
+**2×**, and Cosmic crops sell for **3×**. Mutation chances are decided by the
+server when planting. Nebula Sprout is a quest plant and cannot be sold.
+
+| Tool | Price | Effect |
+| --- | ---: | --- |
+| Stellar Watering Can | $120 | Manual watering adds 30% progress instead of 15%. |
+| Orbit Sprinkler | $750 | Permanent 20% growth bonus. |
+| Mutation Scanner | $450 | Adds 5% chance of a Golden crop when planting. |
+
+Tools are permanent purchases. Each crop can be manually watered once.
+Lab research costs **$150, $400, $900, $1,800, and $3,500**; each level adds
+**10% growth speed** and unlocks the corresponding egg tiers.
+
+## Alien helpers
+
+You can own up to **25 aliens** and equip up to **three different species** in
+the ALIENS menu. Duplicate species do not stack their ability. Helpers roam
+the garden entrance, and their labels show whether their ability is equipped.
+
+| Helper | Rarity | Equipped ability |
+| --- | --- | --- |
+| Gloop | Common | Green Thumb: all crops grow 10% faster. |
+| Orbit | Uncommon | Hydro Helper: manual watering adds another 10% progress. |
+| Starlight | Rare | Lucky Stars: adds 8% Golden mutation chance. |
+| Petal | Rare | Berry Bloom: harvested berries are worth 25% more. |
+| Cinder | Epic | Crystal Keeper: harvested crystals are worth 35% more. |
+| Sprout | Epic | Seed Saver: 20% chance to keep an ordinary seed when planting. |
+| Nova | Legendary | Cosmic Touch: 4% chance of a Cosmic crop when planting. |
+
+Berry/crystal bonuses apply when you harvest. Seed Saver does not refund quest
+seeds. Quest crops always use the normal mutation. The game's stable internal
+species IDs are kept so older alien inventories remain compatible.
 
 | Egg | Price | Required lab | Hatch chances |
 | --- | ---: | ---: | --- |
-| Starter | $50 | 0 | Slimelet 60%, Glowbug 30%, Starling 10% |
-| Botanical | $250 | 1 | Glowbug 35%, Blossom 50%, Ember 15% |
-| Cosmic | $1,000 | 2 | Starling 30%, Frost 55%, Nebula 15% |
+| Starter | $50 | 0 | Gloop 60%, Orbit 30%, Starlight 10% |
+| Botanical | $250 | 1 | Orbit 35%, Petal 50%, Cinder 15% |
+| Cosmic | $1,000 | 2 | Starlight 30%, Sprout 55%, Nova 15% |
 
-Each egg has a **2 second cooldown**. Upgrade prices are **$150, $400, $900,
-$1,800, and $3,500**. Each level adds **25% of base production**, so a fully
-upgraded lab produces **2.25 times** the base total. Fractions are retained
-server-side until they become whole slime.
+Eggs have a two-second cooldown. New species equip automatically if a helper
+slot is free. If your inventory fills up, the ALIENS menu can release one of
+your weakest helpers after a confirming click. There is no refund; discoveries
+remain unlocked, and your final helper is protected.
 
-If your garden fills up, open **SLIMES** and use **Make room**. It releases one
-of your weakest slimes after a second confirming click. There is no refund;
-the collection discovery stays unlocked, and your final slime is protected.
+## The central event
 
-## Pull and play-test
+1. Walk to **Captain Nova**, the blue alien beside the glowing planet, and press E.
+2. Accept **The Comet Harvest**. You receive **three Nebula Sprout seeds**.
+3. Choose those seeds in FARM or QUEST and plant them in your garden.
+4. Grow and harvest all three. These harvests count toward the mission.
+5. Return to Captain Nova and collect **$500 + two Crystal Bloom seeds**.
 
-If your local project was already updated by Codex, skip the pull and start at step 3.
+You must stand near Captain Nova to accept or claim the mission. The event is
+repeatable after completing it. It is an always-available farming quest in this
+version; it has no timer or shared global progress.
 
-1. Stop your current Play test when you are ready.
+## Pull and verify in Roblox Studio
+
+If Codex already updated your local folder, skip the pull and begin at step 3.
+
+1. When you are ready, stop your current Play test.
 2. In **Command Prompt**, run:
 
    ```bat
@@ -70,81 +120,84 @@ If your local project was already updated by Codex, skip the pull and start at s
    git pull --ff-only origin main
    ```
 
-   Keep any local edits if Git reports a conflict. Do not reset the project to force the pull.
+   If Git reports local edits or a conflict, keep those edits and resolve the
+   conflict before continuing. Do not reset the project to force the pull.
 
-3. Keep Rojo running from this project folder. If it is not running, start it:
+3. Keep Rojo running from that project folder. If needed, start it:
 
    ```bat
    "%USERPROFILE%\Downloads\rojo-7.7.1-windows-x86_64\rojo.exe" serve default.project.json
    ```
 
-4. In Studio, open **Plugins > Rojo**, connect to **localhost:34872**, and accept the sync if prompted.
-5. Before pressing Play, check these objects in **Explorer**:
+4. Open **Plugins > Rojo**, connect to **localhost:34872**, and accept the sync.
+5. In Explorer, check:
 
-   - `ReplicatedStorage > Shared`: `AlienData`, `SlimeModel`, and `Remotes`.
-   - `Remotes` contains `UpgradeLab` as well as the original events.
-   - `ServerScriptService > Server`: `LabService`, `LabWorld`, `GardenDecor`, `DataPersistence`.
-   - `StarterPlayer > StarterPlayerScripts > Client`: `LabUI` and `PetController`.
+   - `ReplicatedStorage > Shared`: `AlienData`, `FarmData`, `CropModel`, `SlimeModel`, `Remotes`.
+   - `Remotes`: `BuySeed`, `BuyTool`, `BedAction`, `SellHarvest`, `EquipAlien`, `ClaimEvent`, `OpenShop`.
+   - `ServerScriptService > Server`: `LabService`, `LabWorld`, `GardenDecor`, `DataPersistence`, `FarmSaveSchema`.
+   - `StarterPlayer > StarterPlayerScripts > Client`: `LabUI`, `PetController`.
 
-6. Click **Play** (F5). You should spawn at your farm, see the green HUD and bottom dock,
-   and find a smiling green slime walking in the garden.
-7. Wait a few seconds, sell slime, hatch a Starter Egg, and dismiss the hatch reveal.
-   Check that the cash changes and a second slime appears.
-8. Earn $150, upgrade once, and check that the production rate increases and Botanical eggs unlock.
+6. Press **F5 / Play**. You should spawn at your garden entrance with the HUD,
+   a green Gloop helper, and the cosmic village around you.
+7. Plant, water, harvest, and sell a Star Carrot. Check that planting uses a seed,
+   harvesting increases your basket, and selling changes your cash once.
+8. Buy a seed and a tool, hatch a Starter Egg, and try equipping its helper.
+9. Accept Captain Nova's mission, harvest three Nebula Sprouts, and return for
+   the reward. Claiming again must not give another free reward.
 
-To check multiplayer ownership, use Studio's server test with two players.
-Each player should have a separate farm and balance, and cannot use the other
-player's station prompts. These updates were checked with isolated native
-Roblox instances and simulated network/save services; your live Play test is
-still needed to confirm how they look on your device.
+For multiplayer testing, use two clients in Studio's server test. Each player
+should receive a separate garden and balance. Players cannot use another
+player's beds. These changes passed a fresh Rojo build and isolated native
+Roblox checks for farming, networking, models, menus, and saving. A live Play
+test is still needed to confirm movement and appearance on your device.
 
-## Saving
+## Saving and older progress
 
-An unpublished `Place1` runs in **Session mode**. You can test the whole game,
-but progress resets when you stop or leave.
+An unpublished `Place1` uses **Session mode**: the whole game works, but progress
+resets when you stop or leave. For a saving test, publish a separate test
+experience and enable **Experience Settings > Security > Enable Studio Access
+to API Services**. See [Roblox's DataStore documentation](https://create.roblox.com/docs/cloud-services/data-stores).
 
-For a saving test, publish a **separate test experience**, then enable
-**File > Experience Settings > Security > Enable Studio Access to API Services**
-and save the setting. See [Roblox's DataStore setup documentation](https://create.roblox.com/docs/cloud-services/data-stores).
-Do not enable this setting on a live production experience just for testing.
+Saving runs every **60 seconds**, on leaving, and during shutdown. Studio uses
+`AlienLab_v1_Studio`; published servers use `AlienLab_v1`. The HUD shows the
+save status. Cash, alien inventory/discoveries, lab level, seeds, beds and their
+growth, harvest basket, tools, equipped helpers, and quest progress are saved.
 
-The HUD reports `Session mode`, `Autosave ready`, `Saved`, or `Save retrying`.
-The research menu shows the fuller save status. Saving runs every **60 seconds**,
-on leaving, and during server shutdown. Check saving by earning cash, hatching a
-slime, buying an upgrade, leaving, and rejoining the published test experience.
+Older saves keep their cash, aliens, discoveries, and lab level. Stored slime
+is converted to cash once, and players receive five starting carrot seeds.
+The converted record is marked with `FarmVersion = 1` to prevent repeat grants.
+Failed loads run in session mode and do not overwrite existing progress with
+defaults. Session ownership prevents two servers from saving the same player
+at once. A crashed server's lock expires after three minutes.
 
-Studio uses `AlienLab_v1_Studio`; published Roblox servers use `AlienLab_v1`.
-Cash, slime, inventory, lab level, and discoveries are saved. There is no offline
-production. Failed loads use session-only play and never save starter defaults
-over existing progress. Active save sessions cannot be opened by another server;
-a crashed server's lock expires after three minutes. Repeated service failures
-can still prevent the latest progress from saving; check the HUD and Output.
-
-## Where the code lives
+## Beginner-friendly code structure
 
 ```text
 src/
   shared/
-    AlienData.luau         -- prices, odds, species, upgrades, shared types
-    SlimeModel.luau        -- reusable smiling slime models
-    Remotes.model.json    -- RemoteEvents created by Rojo
+    AlienData.luau       -- species, unique abilities, eggs, upgrades
+    FarmData.luau        -- crops, tools, mutation values, quest rewards
+    SlimeModel.luau      -- reusable alien companion models
+    CropModel.luau       -- visible crop families and growth stages
+    Remotes.model.json  -- RemoteEvents created by Rojo
   server/
-    init.server.luau       -- player lifecycle, remotes, production, autosaves
-    LabService.luau        -- private balances and validated transactions
-    LabWorld.luau          -- personal farms, visible inventory, station checks
-    GardenDecor.luau       -- hub and garden decorations
-    DataPersistence.luau   -- save validation, retries, and session locks
+    init.server.luau     -- player lifecycle, requests, growth, autosaves
+    LabService.luau      -- private inventory and validated farming economy
+    LabWorld.luau        -- gardens, shops, NPC, beds, ownership/distance checks
+    GardenDecor.luau     -- island, mushroom shops, crystals, lighting
+    FarmSaveSchema.luau  -- farming save validation and older save conversion
+    DataPersistence.luau -- save retries, session locks, and load protection
   client/
-    init.client.luau       -- requests, updates, and pending request handling
-    LabUI.luau             -- HUD, menus, previews, and hatch effects
-    PetController.luau     -- cosmetic slime movement and wobble
+    init.client.luau     -- requests, updates, menus, pending action handling
+    LabUI.luau           -- HUD, farming pages, previews, hatch reveal
+    PetController.luau   -- cosmetic walking, blinking, companion animation
 ```
 
-Change `AlienData` first when balancing the game. The client sends egg IDs and
-action requests; it cannot choose its cash, price, upgrade level, or hatch result.
-Ownership, distance, and character health are checked before station actions.
+Change `FarmData` and `AlienData` to adjust balance. The client requests actions;
+the server decides prices, inventory changes, mutations, hatch outcomes, and
+rewards. Farming and quest interactions validate distance and character health.
 
-Build the Rojo place without running Studio:
+Build without starting Studio:
 
 ```bat
 "%USERPROFILE%\Downloads\rojo-7.7.1-windows-x86_64\rojo.exe" build default.project.json -o alien-lab.rbxlx
@@ -153,9 +206,11 @@ Build the Rojo place without running Studio:
 ## If nothing appears
 
 - Stop Play before syncing new scripts, then start a fresh test.
-- Confirm Rojo is serving **this folder**, and the Explorer objects above are present.
-- If `Shared` is empty despite files being on disk, stop the existing Rojo server,
-  restart it from this folder, and reconnect the plugin. Do not run two servers on port 34872.
-- In Rojo's plugin permissions, allow `localhost:34872` and **Script Injection**.
-- Open Studio's **Output** window. Startup should print `Alien Lab v0.3 garden server ready`
-  and `Alien Lab v0.3 garden client ready`. Share the first red error if startup fails.
+- Confirm Rojo serves this folder and the Explorer modules above are present.
+- If new modules are missing, stop the old Rojo server, restart it from this
+  folder, and reconnect. Use only one server on port 34872.
+- Rojo's plugin permissions must allow `localhost:34872` and **Script Injection**.
+- If every object has checker or grid lines, check **View > Grid Material** in
+  Studio and turn it off to see the normal materials.
+- Output should print `Alien Lab v0.4 cosmic farming server ready` and
+  `Alien Lab v0.4 farming client ready`. Share the first red error if startup fails.

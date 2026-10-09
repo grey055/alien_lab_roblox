@@ -3,35 +3,14 @@
 local DataStoreService = game:GetService("DataStoreService")
 local RunService = game:GetService("RunService")
 local HttpService = game:GetService("HttpService")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local AlienData = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("AlienData"))
+local Schema = require(script.Parent:WaitForChild("FarmSaveSchema"))
 local Persistence = {}
 local sessions: { [Player]: any } = {}
 local store: GlobalDataStore? = nil
 local LEASE_SECONDS = 180 -- refreshed every 60 seconds; expires if a server crashes
 
-local function integer(value: any, fallback: number, maximum: number): number
-	if typeof(value) ~= "number" or value ~= value or value == math.huge or value == -math.huge then return fallback end
-	return math.clamp(math.floor(value), 0, maximum)
-end
-
 function Persistence.Normalize(raw: any): any
-	local source = if typeof(raw) == "table" then raw else {}
-	local aliens = {}
-	if typeof(source.Aliens) == "table" then
-		for _, id in source.Aliens do
-			if #aliens >= AlienData.MaxAliens then break end
-			if typeof(id) == "string" and AlienData.Aliens[id] then table.insert(aliens, id) end
-		end
-	end
-	if #aliens == 0 then table.insert(aliens, AlienData.StarterAlienId) end
-	local discovered = { [AlienData.StarterAlienId] = true }
-	if typeof(source.Discovered) == "table" then
-		for _, id in AlienData.AlienOrder do if source.Discovered[id] == true then discovered[id] = true end end
-	end
-	for _, id in aliens do discovered[id] = true end
-	return { Cash = integer(source.Cash, AlienData.StartingCash, 1e12), Slime = integer(source.Slime, 0, 1e12),
-		Aliens = aliens, LabLevel = integer(source.LabLevel, 0, #AlienData.UpgradePrices), Discovered = discovered }
+	return Schema.Normalize(raw)
 end
 
 local function getStore(): GlobalDataStore
@@ -59,6 +38,7 @@ function Persistence.Load(player: Player): (any?, string)
 		blocked = false -- UpdateAsync may run this callback again after a conflict.
 		if typeof(previous) == "table" then
 			if previous.Version and previous.Version ~= 1 then blocked = true; return nil end
+			if typeof(previous.Data) == "table" and previous.Data.FarmVersion and previous.Data.FarmVersion ~= 1 then blocked = true; return nil end
 			local lock = previous.Session
 			if typeof(lock) == "table" and lock.Token ~= token and typeof(lock.Expires) == "number" and lock.Expires > os.time() then
 				blocked = true

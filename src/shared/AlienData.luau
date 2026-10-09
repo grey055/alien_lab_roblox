@@ -8,20 +8,12 @@ export type Alien = {
 	Rarity: string,
 	SlimePerSecond: number,
 	BodyColor: { number },
+	PassiveName: string,
+	PassiveDescription: string,
 }
 
-export type State = {
-	Cash: number,
-	Slime: number,
-	ProductionRate: number,
-	AlienCount: number,
-	HatchCooldownRemaining: number,
-	LastHatchedAlienId: string?,
-	LabLevel: number,
-	Discovered: { string },
-	SaveStatus: string,
-	WeakestAlienId: string,
-}
+-- Farming snapshots contain copied inventories and planting beds; no private objects.
+export type State = { [string]: any }
 
 export type Result = {
 	Success: boolean,
@@ -32,22 +24,22 @@ export type Result = {
 AlienData.StartingCash = 100
 AlienData.StarterAlienId = "Slimelet"
 AlienData.MaxAliens = 25
-AlienData.CashPerSlime = 1
 AlienData.ProductionInterval = 1
 AlienData.SellCooldown = 0.5
 AlienData.UpgradePrices = { 150, 400, 900, 1800, 3500 }
-AlienData.BonusPerLevel = 0.25
+AlienData.BonusPerLevel = 0.10
+AlienData.MaxEquipped = 3
 AlienData.AlienOrder = { "Slimelet", "Glowbug", "Starling", "Blossom", "Ember", "Frost", "Nebula" }
 AlienData.EggOrder = { "Starter", "Botanical", "Cosmic" }
 
 AlienData.Aliens = {
-	Slimelet = { DisplayName = "Slimelet", Rarity = "Common", SlimePerSecond = 1, BodyColor = { 100, 226, 123 } },
-	Glowbug = { DisplayName = "Glowbug", Rarity = "Uncommon", SlimePerSecond = 3, BodyColor = { 64, 220, 215 } },
-	Starling = { DisplayName = "Starling", Rarity = "Rare", SlimePerSecond = 6, BodyColor = { 184, 143, 255 } },
-	Blossom = { DisplayName = "Blossom", Rarity = "Rare", SlimePerSecond = 8, BodyColor = { 255, 148, 191 } },
-	Ember = { DisplayName = "Ember", Rarity = "Epic", SlimePerSecond = 12, BodyColor = { 255, 152, 83 } },
-	Frost = { DisplayName = "Frost", Rarity = "Epic", SlimePerSecond = 18, BodyColor = { 146, 218, 255 } },
-	Nebula = { DisplayName = "Nebula", Rarity = "Legendary", SlimePerSecond = 30, BodyColor = { 160, 113, 255 } },
+	Slimelet = { DisplayName = "Gloop", Rarity = "Common", SlimePerSecond = 1, BodyColor = { 146, 235, 78 }, PassiveName = "Green Thumb", PassiveDescription = "All crops grow 10% faster." },
+	Glowbug = { DisplayName = "Orbit", Rarity = "Uncommon", SlimePerSecond = 3, BodyColor = { 91, 189, 250 }, PassiveName = "Hydro Helper", PassiveDescription = "Watering adds 10% more growth." },
+	Starling = { DisplayName = "Starlight", Rarity = "Rare", SlimePerSecond = 6, BodyColor = { 174, 137, 252 }, PassiveName = "Lucky Stars", PassiveDescription = "New crops have an extra 8% golden mutation chance." },
+	Blossom = { DisplayName = "Petal", Rarity = "Rare", SlimePerSecond = 8, BodyColor = { 251, 154, 200 }, PassiveName = "Berry Bloom", PassiveDescription = "Berry harvests are worth 25% more." },
+	Ember = { DisplayName = "Cinder", Rarity = "Epic", SlimePerSecond = 12, BodyColor = { 248, 169, 83 }, PassiveName = "Crystal Keeper", PassiveDescription = "Crystal harvests are worth 35% more." },
+	Frost = { DisplayName = "Sprout", Rarity = "Epic", SlimePerSecond = 18, BodyColor = { 103, 213, 174 }, PassiveName = "Seed Saver", PassiveDescription = "20% chance to keep a seed when planting." },
+	Nebula = { DisplayName = "Nova", Rarity = "Legendary", SlimePerSecond = 30, BodyColor = { 255, 214, 91 }, PassiveName = "Cosmic Touch", PassiveDescription = "4% chance for new crops to gain a 3x cosmic mutation." },
 } :: { [string]: Alien }
 
 AlienData.StarterEgg = {

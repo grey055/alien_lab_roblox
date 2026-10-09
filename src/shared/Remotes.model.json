@@ -5,9 +5,17 @@
     { "Name": "RequestState", "ClassName": "RemoteEvent" },
     { "Name": "HatchEgg", "ClassName": "RemoteEvent" },
     { "Name": "HatchResult", "ClassName": "RemoteEvent" },
-    { "Name": "SellSlime", "ClassName": "RemoteEvent" },
     { "Name": "ActionResult", "ClassName": "RemoteEvent" },
     { "Name": "UpgradeLab", "ClassName": "RemoteEvent" },
-    { "Name": "ReleaseSlime", "ClassName": "RemoteEvent" }
+    { "Name": "ReleaseSlime", "ClassName": "RemoteEvent" },
+    { "Name": "BuySeed", "ClassName": "RemoteEvent" },
+    { "Name": "BuyTool", "ClassName": "RemoteEvent" },
+    { "Name": "SelectSeed", "ClassName": "RemoteEvent" },
+    { "Name": "SelectAction", "ClassName": "RemoteEvent" },
+    { "Name": "BedAction", "ClassName": "RemoteEvent" },
+    { "Name": "SellHarvest", "ClassName": "RemoteEvent" },
+    { "Name": "EquipAlien", "ClassName": "RemoteEvent" },
+    { "Name": "ClaimEvent", "ClassName": "RemoteEvent" },
+    { "Name": "OpenShop", "ClassName": "RemoteEvent" }
   ]
 }
