@@ -1,0 +1,11 @@
+{
+  "ClassName": "Folder",
+  "Children": [
+    { "Name": "StateUpdated", "ClassName": "RemoteEvent" },
+    { "Name": "RequestState", "ClassName": "RemoteEvent" },
+    { "Name": "HatchEgg", "ClassName": "RemoteEvent" },
+    { "Name": "HatchResult", "ClassName": "RemoteEvent" },
+    { "Name": "SellSlime", "ClassName": "RemoteEvent" },
+    { "Name": "ActionResult", "ClassName": "RemoteEvent" }
+  ]
+}
