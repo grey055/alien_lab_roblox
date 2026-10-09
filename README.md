@@ -231,4 +231,4 @@ Build without starting Studio:
 - If every object has checker or grid lines, check **View > Grid Material** in
   Studio and turn it off to see the normal materials.
 - Output should print `Alien Lab v0.5 cosmic farming server ready` and
-  `Alien Lab v0.5 farming client ready`. Share the first red error if startup fails.
+  `Alien Lab v0.5 cosmic garden client ready`. Share the first red error if startup fails.
