@@ -6,6 +6,8 @@
     { "Name": "HatchEgg", "ClassName": "RemoteEvent" },
     { "Name": "HatchResult", "ClassName": "RemoteEvent" },
     { "Name": "SellSlime", "ClassName": "RemoteEvent" },
-    { "Name": "ActionResult", "ClassName": "RemoteEvent" }
+    { "Name": "ActionResult", "ClassName": "RemoteEvent" },
+    { "Name": "UpgradeLab", "ClassName": "RemoteEvent" },
+    { "Name": "ReleaseSlime", "ClassName": "RemoteEvent" }
   ]
 }

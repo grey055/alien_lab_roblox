@@ -1,121 +1,78 @@
 --!strict
--- Rojo maps this file to StarterPlayerScripts.Client (a LocalScript).
+-- Client actions send only an egg ID or an upgrade request. The server owns the economy.
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local player = Players.LocalPlayer
 local shared = ReplicatedStorage:WaitForChild("Shared")
 local AlienData = require(shared:WaitForChild("AlienData"))
-local LabUI = require(script:WaitForChild("LabUI"))
+local UI = require(script:WaitForChild("LabUI"))
 local PetController = require(script:WaitForChild("PetController"))
 local remotes = shared:WaitForChild("Remotes")
-
-local function remote(name: string): RemoteEvent
-	return remotes:WaitForChild(name) :: RemoteEvent
-end
-
+local function remote(name: string): RemoteEvent return remotes:WaitForChild(name) :: RemoteEvent end
 PetController.Start()
-local view = LabUI.Create(player:WaitForChild("PlayerGui") :: PlayerGui)
+local view = UI.Create(player:WaitForChild("PlayerGui") :: PlayerGui)
 local state: AlienData.State? = nil
-local hatchPending = false
-local sellPending = false
-local hatchRequest = 0
-local sellRequest = 0
+local pending = false
+local requestToken = 0
 
-local function refresh()
-	local current = state
-	if not current then
-		LabUI.SetButtonEnabled(view.Hatch, false)
-		LabUI.SetButtonEnabled(view.Sell, false)
-		return
-	end
-
-	view.Cash.Text = string.format("$%d", current.Cash)
-	view.Slime.Text = string.format("%d", current.Slime)
-	view.Production.Text = string.format("Production: +%d slime / sec", current.ProductionRate)
-	view.Aliens.Text = string.format("%d / %d aliens in your garden", current.AlienCount, AlienData.MaxAliens)
-
-	local canHatch = not hatchPending and current.HatchCooldownRemaining <= 0
-		and current.Cash >= AlienData.StarterEgg.Price and current.AlienCount < AlienData.MaxAliens
-	if hatchPending then
-		view.Hatch.Text = "Hatching..."
-	elseif current.HatchCooldownRemaining > 0 then
-		view.Hatch.Text = string.format("Next egg in %ds", math.ceil(current.HatchCooldownRemaining))
-	elseif current.AlienCount >= AlienData.MaxAliens then
-		view.Hatch.Text = "Your lab is full"
-	elseif current.Cash < AlienData.StarterEgg.Price then
-		view.Hatch.Text = string.format("Need $%d to hatch", AlienData.StarterEgg.Price)
-	else
-		view.Hatch.Text = string.format("Hatch egg  $%d", AlienData.StarterEgg.Price)
-	end
-	view.Sell.Text = if sellPending then "Selling..." else "Sell all slime"
-	LabUI.SetButtonEnabled(view.Hatch, canHatch)
-	LabUI.SetButtonEnabled(view.Sell, not sellPending and current.Slime > 0)
-
-	if current.LastHatchedAlienId then
-		local alien = AlienData.Aliens[current.LastHatchedAlienId]
-		view.Result.Text = string.format("Last hatch: %s (%s)", alien.DisplayName, alien.Rarity)
-	end
+local function refresh() UI.Refresh(view, state, pending) end
+local function request(name: string, eggId: string?)
+	if pending or not state then return end
+	pending = true; requestToken += 1
+	local token = requestToken
+	UI.CancelHatch(view)
+	view.Status.Text = if name == "HatchEgg" then "Opening your egg..." else "Working..."
+	refresh()
+	if name == "HatchEgg" and eggId then UI.BeginHatch(view, eggId) end
+	remote(name):FireServer(eggId)
+	task.delay(6, function()
+		if pending and token == requestToken then
+			UI.CancelHatch(view)
+			pending = false; view.Status.Text = "No reply yet. Try again in a moment."; refresh(); remote("RequestState"):FireServer()
+		end
+	end)
 end
 
--- Connect listeners BEFORE requesting the first snapshot. This also handles
--- a client whose UI started after the server sent its PlayerAdded update.
 remote("StateUpdated").OnClientEvent:Connect(function(snapshot: AlienData.State)
-	state = snapshot
-	refresh()
+	state = snapshot; refresh()
 end)
-
 remote("HatchResult").OnClientEvent:Connect(function(result: AlienData.Result)
-	hatchPending = false
-	view.Status.Text = result.Message
-	refresh()
+	pending = false; view.Status.Text = result.Message; refresh()
+	if result.Success and result.AlienId then
+		local alien = AlienData.Aliens[result.AlienId]
+		view.Status.Text = "Welcome " .. alien.DisplayName .. " to your garden!"
+		-- Brief anticipation before the server-approved reveal. A newer reveal supersedes this one.
+		local token = requestToken
+		task.delay(0.35, function() if token == requestToken then UI.Reveal(view, result.AlienId :: string) end end)
+	else
+		UI.CancelHatch(view)
+	end
 end)
-
 remote("ActionResult").OnClientEvent:Connect(function(result: AlienData.Result)
-	sellPending = false
-	view.Status.Text = result.Message
-	refresh()
+	pending = false; view.Status.Text = result.Message; refresh()
 end)
-
-view.Hatch.Activated:Connect(function()
-	local current = state
-	if not current or hatchPending or current.HatchCooldownRemaining > 0
-		or current.Cash < AlienData.StarterEgg.Price or current.AlienCount >= AlienData.MaxAliens then
-		return
-	end
-	hatchPending = true
-	hatchRequest += 1
-	local request = hatchRequest
-	refresh()
-	-- Only ask for an egg ID; the server decides the price and hatch outcome.
-	remote("HatchEgg"):FireServer(AlienData.StarterEgg.Id)
-	task.delay(5, function()
-		if hatchPending and hatchRequest == request then
-			hatchPending = false
-			view.Status.Text = "No hatch reply yet. Please try again."
-			refresh()
-		end
+for id, b in view.Eggs do
+	b.Activated:Connect(function()
+		local current = state; local egg = AlienData.Eggs[id]
+		if current and current.Cash >= egg.Price and current.LabLevel >= egg.RequiredLevel
+			and current.AlienCount < AlienData.MaxAliens and current.HatchCooldownRemaining <= 0 then request("HatchEgg", id) end
 	end)
+end
+view.Sell.Activated:Connect(function() if state and state.Slime > 0 then request("SellSlime") end end)
+view.Upgrade.Activated:Connect(function()
+	if not state then return end
+	local price = AlienData.UpgradePrices[state.LabLevel + 1]
+	if price and state.Cash >= price then request("UpgradeLab") end
 end)
-
-view.Sell.Activated:Connect(function()
-	local current = state
-	if not current or sellPending or current.Slime <= 0 then
-		return
+view.Release.Activated:Connect(function()
+	if not state or state.AlienCount <= 1 or pending then return end
+	if view.ReleaseConfirmed then
+		view.ReleaseConfirmed = false; request("ReleaseSlime")
+	else
+		view.ReleaseConfirmed = true; refresh()
+		task.delay(4, function() view.ReleaseConfirmed = false; refresh() end)
 	end
-	sellPending = true
-	sellRequest += 1
-	local request = sellRequest
-	refresh()
-	remote("SellSlime"):FireServer()
-	task.delay(5, function()
-		if sellPending and sellRequest == request then
-			sellPending = false
-			view.Status.Text = "No sell reply yet. Please try again."
-			refresh()
-		end
-	end)
 end)
-
 refresh()
 remote("RequestState"):FireServer()
-print("Alien Lab v0.2 farm client ready")
+print("Alien Lab v0.3 garden client ready")

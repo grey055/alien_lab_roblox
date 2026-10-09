@@ -7,6 +7,7 @@ local CollectionService = game:GetService("CollectionService")
 local shared = ReplicatedStorage:WaitForChild("Shared")
 local AlienData = require(shared:WaitForChild("AlienData"))
 local SlimeModel = require(shared:WaitForChild("SlimeModel"))
+local GardenDecor = require(script.Parent:WaitForChild("GardenDecor"))
 
 type Plot = {
 	Model: Model,
@@ -14,8 +15,10 @@ type Plot = {
 	Slot: number,
 	Pets: Folder,
 	PetCount: number,
+	Serial: number,
 	Summary: TextLabel,
 	CharacterConnection: RBXScriptConnection,
+	Reactor: BasePart,
 }
 
 local LabWorld = {}
@@ -69,6 +72,7 @@ function LabWorld.Init()
 	if world then return end
 	local folder = Instance.new("Folder")
 	folder.Name = "AlienLabWorld"
+	GardenDecor.Hub(folder)
 	folder.Parent = Workspace
 	world = folder
 end
@@ -100,7 +104,7 @@ local function stationPrompt(owner: Player, station: BasePart, action: string, o
 	end)
 end
 
-function LabWorld.AddPlayer(player: Player, hatch: (Player) -> (), sell: (Player) -> ())
+function LabWorld.AddPlayer(player: Player, hatch: (Player, string) -> (), sell: (Player) -> (), inventory: { string }?, upgrade: ((Player) -> ())?)
 	if plots[player] then return end
 	LabWorld.Init()
 	local slot = 1
@@ -141,6 +145,9 @@ function LabWorld.AddPlayer(player: Player, hatch: (Player) -> (), sell: (Player
 	local summaryPost = block("GardenSign", Vector3.new(0.4, 2, 0.4), Vector3.new(0, 2, -10), dark)
 	summaryPost.CanCollide = false
 	local summary = sign(summaryPost, "Production", "SLIME GARDEN\nYour aliens live here", white, 220)
+	local reactor = GardenDecor.Farm(model, center)
+	sign(reactor, "UpgradeLabel", "RESEARCH REACTOR\nUpgrade in the Lab menu", mint, 180)
+	if upgrade then stationPrompt(player, reactor, "Upgrade lab", "Research Reactor", upgrade) end
 
 	-- A visible egg dispenser on the left of the garden entrance.
 	block("EggCounter", Vector3.new(9, 2, 7), Vector3.new(-18, 2, -20), dark)
@@ -151,7 +158,17 @@ function LabWorld.AddPlayer(player: Player, hatch: (Player) -> (), sell: (Player
 	local spot = block("EggSpot", Vector3.new(1.3, 1.7, 0.3), Vector3.new(-18.4, 5.7, -21.6), mint)
 	spot.Shape = Enum.PartType.Ball
 	sign(egg, "EggLabel", string.format("STARTER EGG\n$%d", AlienData.StarterEgg.Price), mint, 150)
-	stationPrompt(player, egg, "Hatch egg", "Starter Egg", hatch)
+	stationPrompt(player, egg, "Hatch egg", "Starter Egg", function(owner: Player) hatch(owner, "Starter") end)
+	-- Premium egg displays sit along the side of the garden. Prices and locks remain server rules.
+	for index, eggId in { "Botanical", "Cosmic" } do
+		local data = AlienData.Eggs[eggId]
+		local offset = Vector3.new(-29, 3.5, -9 + index * 10)
+		block("PremiumStand", Vector3.new(4, 1, 4), offset - Vector3.new(0, 2, 0), dark)
+		local display = block(eggId .. "Egg", Vector3.new(2.7, 3.5, 2.7), offset, Color3.fromRGB(unpack(data.Color)))
+		display.Shape = Enum.PartType.Ball
+		sign(display, "EggLabel", string.format("%s\n$%d / Lab %d", data.DisplayName, data.Price, data.RequiredLevel), white, 160)
+		stationPrompt(player, display, "Hatch egg", data.DisplayName, function(owner: Player) hatch(owner, eggId) end)
+	end
 
 	-- The green tank on the right is the slime selling station.
 	block("SellCounter", Vector3.new(9, 2, 7), Vector3.new(18, 2, -20), dark)
@@ -176,10 +193,10 @@ function LabWorld.AddPlayer(player: Player, hatch: (Player) -> (), sell: (Player
 		end)
 	end
 	local connection = player.CharacterAdded:Connect(placeCharacter)
-	plots[player] = { Model = model, Center = center, Slot = slot, Pets = pets, PetCount = 0, Summary = summary, CharacterConnection = connection }
+	plots[player] = { Model = model, Center = center, Slot = slot, Pets = pets, PetCount = 0, Serial = 0, Summary = summary, CharacterConnection = connection, Reactor = reactor }
 	model.Parent = world
 	if player.Character then placeCharacter(player.Character) end
-	LabWorld.AddAlien(player, AlienData.StarterAlienId)
+	for _, id in inventory or { AlienData.StarterAlienId } do LabWorld.AddAlien(player, id) end
 end
 
 function LabWorld.AddAlien(player: Player, alienId: string)
@@ -187,9 +204,10 @@ function LabWorld.AddAlien(player: Player, alienId: string)
 	if not plot or plot.PetCount >= AlienData.MaxAliens then return end
 	local model = SlimeModel.Create(alienId)
 	plot.PetCount += 1
-	model.Name = string.format("%s_%d", alienId, plot.PetCount)
+	plot.Serial += 1
+	model.Name = string.format("%s_%d", alienId, plot.Serial)
 	local home = plot.Center + Vector3.new(0, 1.25, 6)
-	local seed = (player.UserId % 1000) * 0.1 + plot.PetCount * 1.9
+	local seed = (player.UserId % 1000) * 0.1 + plot.Serial * 1.9
 	model:SetAttribute("RoamHome", home)
 	model:SetAttribute("RoamSeed", seed)
 	model:SetAttribute("OwnerUserId", player.UserId)
@@ -207,10 +225,22 @@ function LabWorld.AddAlien(player: Player, alienId: string)
 	CollectionService:AddTag(model, "AlienLabPet")
 end
 
+function LabWorld.RemoveAlien(player: Player, alienId: string)
+	local plot = plots[player]; if not plot then return end
+	for _, pet in plot.Pets:GetChildren() do
+		if pet:GetAttribute("AlienId") == alienId then
+			CollectionService:RemoveTag(pet, "AlienLabPet")
+			pet:Destroy(); plot.PetCount -= 1; return
+		end
+	end
+end
+
 function LabWorld.UpdatePlayer(player: Player, state: AlienData.State)
 	local plot = plots[player]
 	if plot then
-		plot.Summary.Text = string.format("SLIME GARDEN\n%d slime   +%d / sec", state.Slime, state.ProductionRate)
+		plot.Summary.Text = string.format("SLIME GARDEN / LAB %d\n%d slime   +%g / sec", state.LabLevel, state.Slime, state.ProductionRate)
+		local light = plot.Reactor:FindFirstChild("ReactorLight") :: PointLight?
+		if light then light.Brightness = 0.4 + state.LabLevel * 0.3 end
 	end
 end
 

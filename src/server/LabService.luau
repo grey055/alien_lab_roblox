@@ -1,5 +1,5 @@
 --!strict
--- All balances and owned aliens live here on the server. v0.1 has no saving yet.
+-- All balances, upgrades, and hatch rolls live on the server.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local AlienData = require(ReplicatedStorage:WaitForChild("Shared"):WaitForChild("AlienData"))
 
@@ -12,6 +12,9 @@ type Profile = {
 	NextSellAt: number,
 	LastHatchedAlienId: string?,
 	CashValue: IntValue,
+	LabLevel: number,
+	Discovered: { [string]: boolean },
+	SaveStatus: string,
 }
 
 local LabService = {}
@@ -27,10 +30,18 @@ local function productionRate(profile: Profile): number
 	for _, alienId in profile.Aliens do
 		rate += AlienData.Aliens[alienId].SlimePerSecond
 	end
-	return rate
+	return rate * (1 + profile.LabLevel * AlienData.BonusPerLevel)
 end
 
-function LabService.AddPlayer(player: Player)
+local function weakest(profile: Profile): (number, string)
+	local index = 1
+	for i, id in profile.Aliens do
+		if AlienData.Aliens[id].SlimePerSecond < AlienData.Aliens[profile.Aliens[index]].SlimePerSecond then index = i end
+	end
+	return index, profile.Aliens[index]
+end
+
+function LabService.AddPlayer(player: Player, saved: any?, saveStatus: string?)
 	-- Covers both PlayerAdded and players already present when the script starts.
 	if profiles[player] then
 		return
@@ -40,14 +51,17 @@ function LabService.AddPlayer(player: Player)
 	leaderstats.Name = "leaderstats" -- Roblox requires this exact lowercase name.
 	local cash = Instance.new("IntValue")
 	cash.Name = "Cash"
-	cash.Value = AlienData.StartingCash
+	cash.Value = if saved then saved.Cash else AlienData.StartingCash
 	cash.Parent = leaderstats
 	leaderstats.Parent = player
 
 	profiles[player] = {
-		Cash = AlienData.StartingCash,
-		Slime = 0,
-		Aliens = { AlienData.StarterAlienId }, -- Your free first alien starts producing.
+		Cash = cash.Value,
+		Slime = if saved then saved.Slime else 0,
+		Aliens = if saved then table.clone(saved.Aliens) else { AlienData.StarterAlienId },
+		LabLevel = if saved then saved.LabLevel else 0,
+		Discovered = if saved then table.clone(saved.Discovered) else { [AlienData.StarterAlienId] = true },
+		SaveStatus = saveStatus or "Session mode",
 		SlimeRemainder = 0,
 		NextHatchAt = 0,
 		NextSellAt = 0,
@@ -67,6 +81,10 @@ function LabService.GetState(player: Player): AlienData.State?
 	end
 
 	-- Send a small copy; the private inventory and leaderstats object stay here.
+	local discovered = {}
+	for _, id in AlienData.AlienOrder do
+		if profile.Discovered[id] then table.insert(discovered, id) end
+	end
 	return {
 		Cash = profile.Cash,
 		Slime = profile.Slime,
@@ -74,6 +92,10 @@ function LabService.GetState(player: Player): AlienData.State?
 		AlienCount = #profile.Aliens,
 		HatchCooldownRemaining = math.max(0, profile.NextHatchAt - os.clock()),
 		LastHatchedAlienId = profile.LastHatchedAlienId,
+		LabLevel = profile.LabLevel,
+		Discovered = discovered,
+		SaveStatus = profile.SaveStatus,
+		WeakestAlienId = select(2, weakest(profile)),
 	}
 end
 
@@ -99,9 +121,12 @@ function LabService.HatchEgg(player: Player, eggId: any): AlienData.Result
 
 	-- The client may request only this egg ID. Never accept a client price,
 	-- balance, alien result, or quantity. Tables and unknown IDs are rejected.
-	local egg = AlienData.StarterEgg
-	if typeof(eggId) ~= "string" or eggId ~= egg.Id then
+	if typeof(eggId) ~= "string" or not AlienData.Eggs[eggId] then
 		return failure("That egg does not exist.")
+	end
+	local egg = AlienData.Eggs[eggId]
+	if profile.LabLevel < egg.RequiredLevel then
+		return failure(string.format("Upgrade your lab to level %d first!", egg.RequiredLevel))
 	end
 
 	local now = os.clock()
@@ -137,6 +162,7 @@ function LabService.HatchEgg(player: Player, eggId: any): AlienData.Result
 	table.insert(profile.Aliens, alienId) -- Duplicates are allowed and all produce.
 	profile.NextHatchAt = now + egg.HatchCooldown
 	profile.LastHatchedAlienId = alienId
+	profile.Discovered[alienId] = true
 
 	return { Success = true, Message = "Egg hatched!", AlienId = alienId }
 end
@@ -163,6 +189,42 @@ function LabService.SellSlime(player: Player): AlienData.Result
 	profile.Cash += earned
 	profile.CashValue.Value = profile.Cash
 	return { Success = true, Message = string.format("Sold %d slime for $%d.", sold, earned) }
+end
+
+function LabService.UpgradeLab(player: Player): AlienData.Result
+	local profile = profiles[player]
+	if not profile then return failure("Your lab is still loading.") end
+	local price = AlienData.UpgradePrices[profile.LabLevel + 1]
+	if not price then return failure("Your lab is fully upgraded!") end
+	if profile.Cash < price then return failure("Sell more slime to afford this upgrade.") end
+	-- One uninterrupted transaction; neither the price nor the level comes from the client.
+	profile.Cash -= price
+	profile.CashValue.Value = profile.Cash
+	profile.LabLevel += 1
+	return { Success = true, Message = string.format("Lab level %d! All slimes now produce faster.", profile.LabLevel) }
+end
+
+function LabService.SetSaveStatus(player: Player, status: string)
+	local profile = profiles[player]
+	if profile then profile.SaveStatus = status end
+end
+
+function LabService.ReleaseWeakest(player: Player): AlienData.Result
+	local profile = profiles[player]
+	if not profile then return failure("Your lab is still loading.") end
+	if #profile.Aliens <= 1 then return failure("Keep at least one slime in your garden!") end
+	local index, id = weakest(profile)
+	table.remove(profile.Aliens, index)
+	-- Discoveries stay unlocked. Releasing gives no refund; it makes room for a better hatch.
+	return { Success = true, AlienId = id, Message = "Released " .. AlienData.Aliens[id].DisplayName .. ". Collection discovery kept." }
+end
+
+function LabService.Export(player: Player): any?
+	local profile = profiles[player]
+	if not profile then return nil end
+	-- Saving receives a copy, so production can continue while a write yields.
+	return { Cash = profile.Cash, Slime = profile.Slime, Aliens = table.clone(profile.Aliens),
+		LabLevel = profile.LabLevel, Discovered = table.clone(profile.Discovered) }
 end
 
 return LabService

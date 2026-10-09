@@ -44,6 +44,24 @@ function SlimeModel.Create(alienId: string): Model
 		for _, side in { -1, 1 } do
 			piece("Crest", Vector3.new(0.55, 0.85, 0.55), Vector3.new(side * 0.55, 2.9, 0), Color3.fromRGB(255, 224, 112), true)
 		end
+	elseif alienId == "Blossom" then
+		for i = 1, 5 do
+			local angle = i * math.pi * 2 / 5
+			piece("Petal", Vector3.new(0.7, 0.25, 0.7), Vector3.new(math.cos(angle) * 0.45, 2.94, math.sin(angle) * 0.45), Color3.fromRGB(255, 232, 247), true)
+		end
+		piece("FlowerCenter", Vector3.new(0.4, 0.3, 0.4), Vector3.new(0, 3.06, 0), Color3.fromRGB(255, 221, 100), true)
+	elseif alienId == "Ember" or alienId == "Frost" then
+		for _, side in { -1, 1 } do
+			local horn = piece("Crystal", Vector3.new(0.65, 1.3, 0.65), Vector3.new(side * 0.9, 2.92, 0.15), color:Lerp(Color3.new(1, 1, 1), 0.45), false)
+			horn.CFrame *= CFrame.Angles(0, 0, side * 0.35)
+			horn.Material = Enum.Material.Neon
+		end
+	elseif alienId == "Nebula" then
+		for i = 1, 5 do
+			local angle = i * math.pi * 2 / 5
+			piece("CrownPoint", Vector3.new(0.3, 1, 0.3), Vector3.new(math.cos(angle) * 0.85, 3.05, math.sin(angle) * 0.85), Color3.fromRGB(255, 218, 99), false)
+		end
+		local sparkle = Instance.new("Sparkles"); sparkle.SparkleColor = Color3.fromRGB(232, 185, 255); sparkle.Parent = body
 	end
 
 	model.PrimaryPart = body

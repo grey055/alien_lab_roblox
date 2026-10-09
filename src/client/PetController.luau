@@ -40,7 +40,9 @@ function PetController.Start()
 				local position = pet.Home + Vector3.new(x, bounce, z)
 				local direction = Vector3.new(math.cos(phase) * 18, 0, math.cos(phase * 0.73 + pet.Seed) * 7.3)
 				if direction.Magnitude < 0.01 then direction = Vector3.new(0, 0, -1) end
-				model:PivotTo(CFrame.lookAt(position, position + direction))
+				-- A slight wobble makes each hop feel soft, with a separate rhythm per pet.
+				local wobble = math.sin(time * 2.8 + pet.Seed) * 0.06
+				model:PivotTo(CFrame.lookAt(position, position + direction) * CFrame.Angles(0, 0, wobble))
 			end
 		end
 	end)
