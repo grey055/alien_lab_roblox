@@ -6,12 +6,14 @@ local player = Players.LocalPlayer
 local shared = ReplicatedStorage:WaitForChild("Shared")
 local AlienData = require(shared:WaitForChild("AlienData"))
 local LabUI = require(script:WaitForChild("LabUI"))
+local PetController = require(script:WaitForChild("PetController"))
 local remotes = shared:WaitForChild("Remotes")
 
 local function remote(name: string): RemoteEvent
 	return remotes:WaitForChild(name) :: RemoteEvent
 end
 
+PetController.Start()
 local view = LabUI.Create(player:WaitForChild("PlayerGui") :: PlayerGui)
 local state: AlienData.State? = nil
 local hatchPending = false
@@ -27,10 +29,10 @@ local function refresh()
 		return
 	end
 
-	view.Cash.Text = string.format("Cash: $%d", current.Cash)
-	view.Slime.Text = string.format("Slime: %d", current.Slime)
-	view.Production.Text = string.format("Production: %d slime / second", current.ProductionRate)
-	view.Aliens.Text = string.format("Aliens: %d / %d", current.AlienCount, AlienData.MaxAliens)
+	view.Cash.Text = string.format("$%d", current.Cash)
+	view.Slime.Text = string.format("%d", current.Slime)
+	view.Production.Text = string.format("Production: +%d slime / sec", current.ProductionRate)
+	view.Aliens.Text = string.format("%d / %d aliens in your garden", current.AlienCount, AlienData.MaxAliens)
 
 	local canHatch = not hatchPending and current.HatchCooldownRemaining <= 0
 		and current.Cash >= AlienData.StarterEgg.Price and current.AlienCount < AlienData.MaxAliens
@@ -43,7 +45,7 @@ local function refresh()
 	elseif current.Cash < AlienData.StarterEgg.Price then
 		view.Hatch.Text = string.format("Need $%d to hatch", AlienData.StarterEgg.Price)
 	else
-		view.Hatch.Text = string.format("Hatch %s ($%d)", AlienData.StarterEgg.DisplayName, AlienData.StarterEgg.Price)
+		view.Hatch.Text = string.format("Hatch egg  $%d", AlienData.StarterEgg.Price)
 	end
 	view.Sell.Text = if sellPending then "Selling..." else "Sell all slime"
 	LabUI.SetButtonEnabled(view.Hatch, canHatch)
@@ -116,4 +118,4 @@ end)
 
 refresh()
 remote("RequestState"):FireServer()
-print("Alien Lab v0.1 client ready")
+print("Alien Lab v0.2 farm client ready")

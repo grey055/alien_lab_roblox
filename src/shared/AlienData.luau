@@ -7,6 +7,7 @@ export type Alien = {
 	DisplayName: string,
 	Rarity: string,
 	SlimePerSecond: number,
+	BodyColor: { number },
 }
 
 export type State = {
@@ -32,9 +33,9 @@ AlienData.ProductionInterval = 1
 AlienData.SellCooldown = 0.5
 
 AlienData.Aliens = {
-	Slimelet = { DisplayName = "Slimelet", Rarity = "Common", SlimePerSecond = 1 },
-	Glowbug = { DisplayName = "Glowbug", Rarity = "Uncommon", SlimePerSecond = 3 },
-	Starling = { DisplayName = "Starling", Rarity = "Rare", SlimePerSecond = 6 },
+	Slimelet = { DisplayName = "Slimelet", Rarity = "Common", SlimePerSecond = 1, BodyColor = { 100, 226, 123 } },
+	Glowbug = { DisplayName = "Glowbug", Rarity = "Uncommon", SlimePerSecond = 3, BodyColor = { 64, 220, 215 } },
+	Starling = { DisplayName = "Starling", Rarity = "Rare", SlimePerSecond = 6, BodyColor = { 184, 143, 255 } },
 } :: { [string]: Alien }
 
 AlienData.StarterEgg = {
