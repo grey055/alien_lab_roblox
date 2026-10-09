@@ -38,17 +38,27 @@ function CropModel.Create(cropId: string, stage: number?, mutation: string?): Mo
 	end
 	local factor = ({ 0.24, 0.52, 0.78, 1 })[growthStage]
 	for i = 1, 4 do
+		-- A little fixed variation makes the planted group feel grown by hand.
+		-- These shapes are cosmetic; one bed still gives one harvest.
 		local at = CFrame.new(if i % 2 == 0 then 2.2 else -2.2, 0, if i > 2 then 1.75 else -1.75)
+			* CFrame.Angles(0, (i - 2.5) * 0.22, 0)
+		local shadow = p("RootShadow", Vector3.new(1.9, 0.045, 1.65) * math.max(factor, 0.45),
+			at * CFrame.new(0, 0.025, 0), Color3.fromRGB(66, 75, 92), true)
+		shadow.Transparency = 0.55
 		if growthStage == 1 then
 			p("SeedlingStem", Vector3.new(0.13, 0.65, 0.13), at * CFrame.new(0, 0.32, 0), green)
 			leaf(at * CFrame.new(0, 0.6, 0), 0.8)
 		else
-			local s = factor
+			local s = factor * ({ 1.04, 0.96, 1.07, 1 })[i]
 			if cropId == "StarCarrot" then
 				p("CarrotRoot", Vector3.new(1.35 * s, 2.2 * s, 1.35 * s), at * CFrame.new(0, 1.03 * s, 0), tint, true)
 				leaf(at * CFrame.new(0, 2.15 * s, 0), 1.55 * s)
 				leaf(at * CFrame.new(0, 2.2 * s, 0) * CFrame.Angles(0, math.pi / 2, 0), 1.25 * s)
 				p("CarrotShine", Vector3.new(0.28, 0.5, 0.13) * s, at * CFrame.new(-0.25 * s, 1.3 * s, -0.6 * s), cream, true)
+				for _, height in { 0.62, 1.05 } do
+					p("CarrotGroove", Vector3.new(0.5, 0.055, 0.07) * s,
+						at * CFrame.new(0.13 * s, height * s, -0.61 * s), tint:Lerp(Color3.fromRGB(181, 99, 50), 0.3), true)
+				end
 			elseif cropId == "MoonBerry" then
 				p("BerryStem", Vector3.new(0.25, 1.8 * s, 0.25), at * CFrame.new(0, 0.9 * s, 0), green)
 				p("BerryBush", Vector3.new(2.5, 1.9, 2) * s, at * CFrame.new(0, 1.65 * s, 0), Color3.fromRGB(81, 156, 161), true)
@@ -57,11 +67,16 @@ function CropModel.Create(cropId: string, stage: number?, mutation: string?): Mo
 					local berry = p("MoonBerry", Vector3.new(0.85, 0.85, 0.85) * s,
 						at * CFrame.new(math.cos(angle) * 1.05 * s, (1.6 + j % 2 * 0.3) * s, math.sin(angle) * 0.85 * s), tint, true)
 					p("BerryGlint", Vector3.new(0.18, 0.18, 0.1) * s, berry.CFrame * CFrame.new(-0.13 * s, 0.15 * s, -0.36 * s), cream, true)
+					p("BerryFlower", Vector3.new(0.22, 0.10, 0.22) * s,
+						berry.CFrame * CFrame.new(0, 0.41 * s, 0), cream, true)
 				end
 			elseif cropId == "GlowShroom" then
 				p("GlowStem", Vector3.new(0.5, 1.8, 0.5) * s, at * CFrame.new(0, 0.9 * s, 0), cream)
 				local cap = p("GlowCap", Vector3.new(2.6, 1.3, 2.6) * s, at * CFrame.new(0, 2 * s, 0), tint, true)
-				if growthStage == 4 then cap.Material = Enum.Material.Neon end
+				-- Let a thin luminous underside glow; keep the cap's rich color.
+				local gills = p("ShroomGills", Vector3.new(2.3, 0.20, 2.3) * s,
+					at * CFrame.new(0, 1.62 * s, 0), tint:Lerp(cream, 0.48), true)
+				if growthStage == 4 then gills.Material = Enum.Material.Neon end
 				for j = 1, 3 do
 					local angle = j * math.pi * 2 / 3
 					p("ShroomSpot", Vector3.new(0.45, 0.12, 0.45) * s,
@@ -83,11 +98,15 @@ function CropModel.Create(cropId: string, stage: number?, mutation: string?): Mo
 			elseif cropId == "CometMelon" then
 				leaf(at * CFrame.new(0, 0.25, 0), 1.8 * s)
 				p("Melon", Vector3.new(2.5, 2.4, 2.5) * s, at * CFrame.new(0, 1.2 * s, 0), tint, true)
-				for _, side in { -1, 1 } do
-					p("MelonStripe", Vector3.new(0.24, 1.85, 0.17) * s,
-						at * CFrame.new(side * 0.63 * s, 1.28 * s, -1.12 * s) * CFrame.Angles(0, 0, side * 0.13), tint:Lerp(green, 0.55), true)
+				for j = 1, 7 do
+					local angle = j * math.pi * 2 / 7
+					p("MelonStripe", Vector3.new(0.15, 1.87, 0.15) * s,
+						at * CFrame.new(math.sin(angle) * 1.13 * s, 1.27 * s, math.cos(angle) * 1.13 * s)
+						* CFrame.Angles(0, angle, 0), tint:Lerp(green, 0.55), true)
 				end
 				leaf(at * CFrame.new(0, 2.45 * s, 0), 0.9 * s)
+				p("MelonShine", Vector3.new(0.32, 0.5, 0.08) * s,
+					at * CFrame.new(-0.48 * s, 1.8 * s, -1.01 * s), cream, true)
 			else -- The quest crop looks like a tiny planet on a living stalk.
 				p("NebulaStem", Vector3.new(0.3, 2, 0.3) * s, at * CFrame.new(0, s, 0), green)
 				leaf(at * CFrame.new(0, 1.1 * s, 0), 1.65 * s)
@@ -98,6 +117,14 @@ function CropModel.Create(cropId: string, stage: number?, mutation: string?): Mo
 					p("NebulaOrbit", Vector3.new(0.18, 0.18, 0.18) * s,
 						at * CFrame.new(math.sin(angle) * 1.15 * s, (2.4 + math.cos(angle) * 0.25) * s, math.cos(angle) * 1.15 * s), cream, true).Material = Enum.Material.Neon
 				end
+			end
+		end
+	end
+	if growthStage > 1 and mutationName ~= "Normal" then
+		-- Mutations have their own finish in shop previews as well as the world.
+		for _, part in model:GetDescendants() do
+			if part:IsA("BasePart") and part.Name ~= "CropPivot" and part.Name ~= "RootShadow" then
+				part.Reflectance = if mutationName == "Golden" then 0.10 else 0.06
 			end
 		end
 	end

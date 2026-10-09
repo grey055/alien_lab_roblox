@@ -66,7 +66,23 @@ local function bedAction(player: Player, index: any, action: any?)
 	if typeof(index) ~= "number" or index ~= index or index % 1 ~= 0 or not LabWorld.CanUseBed(player, index) then
 		reply(player, { Success = false, Message = "Walk closer to one of your own planting beds first." }); return
 	end
-	reply(player, LabService.InteractBed(player, index, action))
+	-- Feedback is cosmetic and goes only to the player after a valid action.
+	-- We read the old bed to distinguish picking, watering, and planting.
+	local before = LabService.GetState(player)
+	local result = LabService.InteractBed(player, index, action)
+	reply(player, result)
+	if result.Success and before then
+		local bed = before.Beds[index]
+		local position = LabWorld.GetBedPosition(player, index)
+		if bed and position then
+			local kind = if bed.CropId and bed.Progress >= 1 then "Harvest"
+				elseif bed.CropId then "Water" else "Plant"
+			remote("FarmFeedback"):FireClient(player, {
+				Kind = kind, Position = position + Vector3.new(0, 0.5, 0),
+				CropId = bed.CropId or before.SelectedSeed, Mutation = bed.Mutation or "Normal",
+			})
+		end
+	end
 end
 remote("BedAction").OnServerEvent:Connect(bedAction)
 
@@ -75,7 +91,19 @@ local function claimEvent(player: Player)
 	if not LabWorld.CanUseEvent(player) then
 		reply(player, { Success = false, Message = "Visit the researcher beside the glowing comet in the plaza." }); return
 	end
-	reply(player, LabService.ClaimEvent(player))
+	local before = LabService.GetState(player)
+	local result = LabService.ClaimEvent(player)
+	reply(player, result)
+	local after = if result.Success then LabService.GetState(player) else nil
+	if before and after and after.Cash > before.Cash then
+		local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+		if root and root:IsA("BasePart") then
+			remote("FarmFeedback"):FireClient(player, {
+				Kind = "Quest", Position = root.Position + Vector3.new(0, 2, 0),
+				Value = after.Cash - before.Cash,
+			})
+		end
+	end
 	remote("OpenShop"):FireClient(player, "Event")
 end
 remote("ClaimEvent").OnServerEvent:Connect(claimEvent)
@@ -145,4 +173,4 @@ game:BindToClose(function()
 	local deadline = os.clock() + 25
 	while pending > 0 and os.clock() < deadline do task.wait(0.1) end
 end)
-print("Alien Lab v0.4 cosmic farming server ready")
+print("Alien Lab v0.5 cosmic farming server ready")

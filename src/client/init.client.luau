@@ -9,12 +9,14 @@ local AlienData = require(shared:WaitForChild("AlienData"))
 local FarmData = require(shared:WaitForChild("FarmData"))
 local UI = require(script:WaitForChild("LabUI"))
 local PetController = require(script:WaitForChild("PetController"))
+local WorldEffects = require(script:WaitForChild("WorldEffects"))
 local remotes = shared:WaitForChild("Remotes")
 local function remote(name: string): RemoteEvent
 	return remotes:WaitForChild(name) :: RemoteEvent
 end
 
 PetController.Start()
+WorldEffects.Start()
 local view = UI.Create(player:WaitForChild("PlayerGui") :: PlayerGui)
 local state: AlienData.State? = nil
 local pending = false
@@ -40,7 +42,7 @@ local function request(name: string, value: any?)
 	pending = true; requestToken += 1
 	local token = requestToken
 	UI.CancelHatch(view)
-	view.Status.Text = if name == "HatchEgg" then "A new garden friend is hatching..." else "One little moment..."
+	UI.SetStatus(view, if name == "HatchEgg" then "A new garden friend is hatching..." else "One little moment...")
 	refresh()
 	if name == "HatchEgg" and typeof(value) == "string" then UI.BeginHatch(view, value) end
 	remote(name):FireServer(value)
@@ -48,7 +50,7 @@ local function request(name: string, value: any?)
 	task.delay(6, function()
 		if pending and token == requestToken then
 			UI.CancelHatch(view)
-			pending = false; view.Status.Text = "No reply yet. Try again in a moment."
+			pending = false; UI.SetStatus(view, "No reply yet. Try again in a moment.", false)
 			refresh(); remote("RequestState"):FireServer()
 		end
 	end)
@@ -60,9 +62,9 @@ remote("StateUpdated").OnClientEvent:Connect(function(snapshot: AlienData.State)
 end)
 
 remote("HatchResult").OnClientEvent:Connect(function(result: AlienData.Result)
-	pending = false; view.Status.Text = result.Message; refresh()
+	pending = false; UI.SetStatus(view, result.Message, result.Success); refresh()
 	if result.Success and result.AlienId and AlienData.Aliens[result.AlienId] then
-		view.Status.Text = "Welcome " .. AlienData.Aliens[result.AlienId].DisplayName .. " to your garden!"
+		UI.SetStatus(view, "Welcome " .. AlienData.Aliens[result.AlienId].DisplayName .. " to your garden!", true)
 		local token = requestToken
 		task.delay(0.35, function()
 			if token == requestToken then UI.Reveal(view, result.AlienId :: string) end
@@ -73,7 +75,11 @@ remote("HatchResult").OnClientEvent:Connect(function(result: AlienData.Result)
 end)
 
 remote("ActionResult").OnClientEvent:Connect(function(result: AlienData.Result)
-	pending = false; view.Status.Text = result.Message; refresh()
+	pending = false; UI.SetStatus(view, result.Message, result.Success); refresh()
+end)
+
+remote("FarmFeedback").OnClientEvent:Connect(function(payload: any)
+	WorldEffects.Feedback(payload)
 end)
 
 remote("OpenShop").OnClientEvent:Connect(function(kind: string)
@@ -154,4 +160,4 @@ end)
 
 refresh()
 remote("RequestState"):FireServer()
-print("Alien Lab v0.4 farming client ready")
+print("Alien Lab v0.5 cosmic garden client ready")

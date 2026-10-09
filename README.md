@@ -1,4 +1,4 @@
-# Alien Lab v0.4 — Cosmic Gardens
+# Alien Lab v0.5 — Cosmic Gardens
 
 A colorful alien farming game built with Rojo and commented Luau. Buy seeds,
 plant your garden, harvest crops, and sell your basket for cash. Hatch alien
@@ -19,6 +19,22 @@ there are no external model or image assets to upload.
 
 The village and interface are created when **Play** starts. The original
 template baseplate is hidden at runtime; the Edit scene remains the template.
+
+## v0.5 visual polish
+
+- More detailed mushroom shops with alien shopkeepers, window frames, awnings,
+  floating shop displays, and a tall glowing portal landmark.
+- Layered island cliffs, richer foliage, garden gates, and wooden bed borders.
+- Brighter colors and clearer lighting, with gentle scenery movement.
+- Illustrated HUD and navigation, shop preview tiles, menu transitions,
+  readable status messages, and cash change animation.
+- Local planting, watering, harvest, and quest reward effects, triggered only
+  after successful server actions.
+- More varied crop groups, carrot details, berry blossoms, mushroom gills,
+  melon stripes, and distinctive mutation finishes.
+
+The portal is a scenic village landmark in this version. Effects are cosmetic,
+limited in number, and stop updating distant scenery to keep the game light.
 
 ## Your first harvest
 
@@ -134,8 +150,9 @@ If Codex already updated your local folder, skip the pull and begin at step 3.
 
    - `ReplicatedStorage > Shared`: `AlienData`, `FarmData`, `CropModel`, `SlimeModel`, `Remotes`.
    - `Remotes`: `BuySeed`, `BuyTool`, `BedAction`, `SellHarvest`, `EquipAlien`, `ClaimEvent`, `OpenShop`.
+   - `Remotes > FarmFeedback` sends successful farming effects to the client.
    - `ServerScriptService > Server`: `LabService`, `LabWorld`, `GardenDecor`, `DataPersistence`, `FarmSaveSchema`.
-   - `StarterPlayer > StarterPlayerScripts > Client`: `LabUI`, `PetController`.
+   - `StarterPlayer > StarterPlayerScripts > Client`: `LabUI`, `PetController`, `WorldEffects`.
 
 6. Press **F5 / Play**. You should spawn at your garden entrance with the HUD,
    a green Gloop helper, and the cosmic village around you.
@@ -191,6 +208,7 @@ src/
     init.client.luau     -- requests, updates, menus, pending action handling
     LabUI.luau           -- HUD, farming pages, previews, hatch reveal
     PetController.luau   -- cosmetic walking, blinking, companion animation
+    WorldEffects.luau    -- floating scenery, portal motes, farming feedback
 ```
 
 Change `FarmData` and `AlienData` to adjust balance. The client requests actions;
@@ -212,5 +230,5 @@ Build without starting Studio:
 - Rojo's plugin permissions must allow `localhost:34872` and **Script Injection**.
 - If every object has checker or grid lines, check **View > Grid Material** in
   Studio and turn it off to see the normal materials.
-- Output should print `Alien Lab v0.4 cosmic farming server ready` and
-  `Alien Lab v0.4 farming client ready`. Share the first red error if startup fails.
+- Output should print `Alien Lab v0.5 cosmic farming server ready` and
+  `Alien Lab v0.5 farming client ready`. Share the first red error if startup fails.

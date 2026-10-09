@@ -16,6 +16,7 @@
     { "Name": "SellHarvest", "ClassName": "RemoteEvent" },
     { "Name": "EquipAlien", "ClassName": "RemoteEvent" },
     { "Name": "ClaimEvent", "ClassName": "RemoteEvent" },
-    { "Name": "OpenShop", "ClassName": "RemoteEvent" }
+    { "Name": "OpenShop", "ClassName": "RemoteEvent" },
+    { "Name": "FarmFeedback", "ClassName": "RemoteEvent" }
   ]
 }

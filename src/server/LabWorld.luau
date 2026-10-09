@@ -74,13 +74,24 @@ function LabWorld.Init()
 	local folder = Instance.new("Folder"); folder.Name = "AlienLabWorld"
 	local stations = Decor.Hub(folder)
 	for kind, station in stations do
+		-- Each shop has its own friendly alien vendor. Vendors are scenery,
+		-- so they receive no ownership tag or farming passive.
+		local species = ({ Seeds = "Slimelet", Tools = "Glowbug", Eggs = "Blossom", Sell = "Nebula" })[kind]
+		local vendor = SlimeModel.Create(species)
+		vendor.Name = kind .. "Vendor"
+		vendor:PivotTo(station.CFrame * CFrame.new(0, -1.25, 4.8))
+		vendor.Parent = station.Parent
+		local vendorBody = vendor.PrimaryPart :: BasePart
+		local apron = Decor.Part(vendor, "ShopApron", Vector3.new(1.32, 1.4, 0.16), vendorBody.CFrame * CFrame.new(0, -0.1, -0.83), cream)
+		apron.CanCollide = false
+		Decor.Ball(vendor, "VendorBadge", Vector3.new(0.25, 0.25, 0.08), apron.CFrame * CFrame.new(0.25, 0.3, -0.11), mint)
 		prompt(station, if kind == "Sell" then "Sell harvest" else "Open shop", kind .. " Shop", function(player: Player)
 			local plot = plots[player]
 			if plot and near(player, station, 12) then plot.Callbacks.OpenShop(player, kind) end
 		end)
 	end
 	local captain = SlimeModel.Create("Glowbug")
-	captain.Name = "CaptainNova"; captain:ScaleTo(1.22); captain:PivotTo(CFrame.new(0, 6.9, -12.5))
+	captain.Name = "CaptainNova"; captain:ScaleTo(1.22); captain:PivotTo(CFrame.new(0, 6.9, -12.5) * CFrame.Angles(0, math.pi, 0))
 	captain.Parent = folder
 	local head = captain:FindFirstChild("Head")
 	if head and head:IsA("BasePart") then
@@ -98,6 +109,12 @@ function LabWorld.Init()
 		local plot = plots[player]
 		if plot and LabWorld.CanUseEvent(player) then plot.Callbacks.ClaimEvent(player) end
 	end)
+	-- WorldEffects animates only explicitly tagged scenery; it never changes the
+	-- portal's collision, a bed's growth, or the player's private farming state.
+	for _, item in folder:GetDescendants() do
+		if item:GetAttribute("CosmicFloat") == true then CollectionService:AddTag(item, "CosmicFloat") end
+		if item:GetAttribute("CosmicPortal") == true then CollectionService:AddTag(item, "CosmicPortal") end
+	end
 	-- Studio checks can substitute the decoration module's Lighting function;
 	-- normal Play applies this palette only to the runtime place.
 	Decor.Lighting()
@@ -136,7 +153,7 @@ function LabWorld.AddPlayer(player: Player, callbacks: Callbacks, inventory: { s
 	if slot > 6 then
 		-- Extra players keep their own plots; their little island bridges back to town.
 		Decor.Disk(model, "ExtraGardenIsland", 78, 5, at * CFrame.new(0, -2.5, 0), Color3.fromRGB(137, 143, 211))
-		Decor.Part(model, "IslandBridge", Vector3.new(8, 0.8, 70), at * CFrame.new(0, -0.1, -47), Color3.fromRGB(211, 189, 163))
+		Decor.Part(model, "IslandBridge", Vector3.new(8, 0.8, 70), at * CFrame.new(0, -0.1, -47), Color3.fromRGB(211, 189, 163)).CanCollide = true
 	end
 	Decor.Farm(model, at)
 	Decor.Board(model, "OwnerSign", at * CFrame.new(0, 4.8, 22.5), Vector3.new(20, 3.2, 0.45), player.DisplayName .. "'s GARDEN", "PLANT  •  GROW  •  HARVEST", cream)
@@ -154,10 +171,12 @@ function LabWorld.AddPlayer(player: Player, callbacks: Callbacks, inventory: { s
 		local bedModel = Instance.new("Model"); bedModel.Name = string.format("Bed_%02d", index)
 		bedModel:SetAttribute("BedIndex", index); bedModel:SetAttribute("OwnerUserId", player.UserId); bedModel.Parent = model
 		local soil = Decor.Part(bedModel, "PlantingSoil", Vector3.new(10.8, 0.6, 8.4), bedAt, Color3.fromRGB(107, 70, 65))
-		soil.Material = Enum.Material.Ground
+		soil.Material = Enum.Material.Ground; soil.CanCollide = true
 		for _, side in { -1, 1 } do
-			Decor.Part(bedModel, "BedFrame", Vector3.new(0.35, 0.5, 8.8), bedAt * CFrame.new(side * 5.6, 0.35, 0), Color3.fromRGB(189, 132, 87))
-			Decor.Part(bedModel, "BedFrame", Vector3.new(11.3, 0.5, 0.35), bedAt * CFrame.new(0, 0.35, side * 4.35), Color3.fromRGB(189, 132, 87))
+			Decor.Part(bedModel, "BedFrame", Vector3.new(0.35, 0.5, 8.8), bedAt * CFrame.new(side * 5.6, 0.35, 0), Color3.fromRGB(187, 125, 72)).Material = Enum.Material.Wood
+			Decor.Part(bedModel, "BedFrame", Vector3.new(11.3, 0.5, 0.35), bedAt * CFrame.new(0, 0.35, side * 4.35), Color3.fromRGB(187, 125, 72)).Material = Enum.Material.Wood
+			Decor.Part(bedModel, "BedInsetTrim", Vector3.new(0.12, 0.12, 8.4), bedAt * CFrame.new(side * 5.36, 0.59, 0), Color3.fromRGB(247, 199, 129))
+			Decor.Part(bedModel, "BedInsetTrim", Vector3.new(10.6, 0.12, 0.12), bedAt * CFrame.new(0, 0.59, side * 4.11), Color3.fromRGB(247, 199, 129))
 		end
 		-- A low water sheen communicates that this crop has been watered.
 		local water = Decor.Part(bedModel, "WaterSheen", Vector3.new(10.3, 0.04, 7.9), bedAt * CFrame.new(0, 0.33, 0), Color3.fromRGB(121, 215, 232))
